@@ -72,7 +72,7 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
     agent?.intregatedDomains.push(domainUrl);
     await agent.save();
 
-    const cacheKey = `aiAgentsByBusinessId-${business._id}`;
+    const cacheKey = `agentById-${agent._id}`
     await redisClient.del(cacheKey);
 
     return sendSuccess(res, 200, 'Chat widget validated', {
