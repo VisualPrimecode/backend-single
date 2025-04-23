@@ -92,7 +92,7 @@ export const createBusiness = async (req: AuthRequest, res: Response, _next: Nex
 
     await business.save();
 
-    const apiKey = generateUniqueApiKey(16);
+    const apiKey =await generateUniqueApiKey(16);
 
     const aiIntegrations = new AiIntregrations({
       businessId: business._id,
