@@ -20,7 +20,7 @@
     "cookie-parser",
     "jsonwebtoken",
     "multer"],
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "noEmitOnError": true,
   },
 
