@@ -15,12 +15,15 @@ function generateSecureApiKey(length = 16): string {
 }
 
 
-async function generateUniqueApiKey(length = 16): Promise<string> {
+async function generateUniqueApiKey(length = 16) {
   let apiKey;
   let exists = true;
+  let tries = 0;
   do {
-    apiKey = generateSecureApiKey(length);
-    exists = !!(await AiIntregrations.findOne({ 'integrationDetails.apiKey': apiKey }));
+    apiKey = crypto.randomBytes(length).toString("hex").slice(0, length);
+    exists = !! await AiIntregrations.exists({ "integrationDetails.apiKey": apiKey });
+    tries++;
+    if (tries > 10) throw new Error("API key generation failed: too many attempts.");
   } while (exists);
   return apiKey;
 }
@@ -93,6 +96,14 @@ export const createBusiness = async (req: AuthRequest, res: Response, _next: Nex
     await business.save();
 
     const apiKey =await generateUniqueApiKey(16);
+    console.log("Generated API Key:", apiKey, typeof apiKey);
+    
+    if (!apiKey || typeof apiKey !== "string" || apiKey.length < 12) {
+      return sendError(res, 500, "API Key generation failed");
+    }
+    
+
+  
 
     const aiIntegrations = new AiIntregrations({
       businessId: business._id,
