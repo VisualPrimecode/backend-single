@@ -2,11 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import redisClient from "./config/redis";
-import { swaggerSpec, swaggerUi } from "./swagger";
+// import { swaggerSpec, swaggerUi } from "./swagger";
 import cors from "cors";
 import path from "path";
-import { globalRateLimiter } from "./middleware/globalRateLimiter";
-import cookieParser from 'cookie-parser';
+import  cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -56,8 +55,8 @@ app.use("/api/v1/ai-model", aiModelRoutes);
 app.use('/api/v1/ai-agent', aiAgentRoutes);
 app.use('/api/v1/widget', chatWidgetRoutes);
 
-// Serve Swagger docs at /api-docs
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// // Serve Swagger docs at /api-docs
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Test Route
 app.get("/", (_req, res) => {

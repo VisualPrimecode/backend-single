@@ -345,8 +345,8 @@ import { globalRateLimiter } from '../middleware/globalRateLimiter';
 
 const router = express.Router();
 
-router.post('/register', globalRateLimiter, registerUser);
-router.post('/login', globalRateLimiter, loginUser);
+router.post('/register', globalRateLimiter as any, registerUser);
+router.post('/login', globalRateLimiter as any, loginUser);
 router.post('/logout', logoutUser);
 router.get('/', authMiddleware, roleMiddleware(['admin']), fetchAllUsers);
 router.get('/:id', authMiddleware, fetchUserById);
