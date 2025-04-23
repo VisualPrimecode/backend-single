@@ -22,7 +22,6 @@ const agentSchema = zod_1.z.object({
 const createAIAgent = async (req, res) => {
     try {
         const parsed = agentSchema.safeParse(req.body);
-        console.log(req.body);
         if (!parsed.success) {
             return (0, response_1.sendError)(res, 400, 'Invalid agent data', parsed.error.flatten());
         }

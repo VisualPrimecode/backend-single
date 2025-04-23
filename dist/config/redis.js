@@ -7,7 +7,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const redis_1 = require("redis");
 let redisClient;
-const isDev = process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'test';
+const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 const createRedisClient = () => {
     // ✅ Prefer full REDIS_URL in any environment
     if (process.env.REDIS_URL) {

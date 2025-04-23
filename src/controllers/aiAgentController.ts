@@ -21,7 +21,7 @@ const agentSchema = z.object({
 export const createAIAgent = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const parsed = agentSchema.safeParse(req.body);
-    console.log(req.body);
+
     if (!parsed.success) {
       return sendError(res, 400, 'Invalid agent data', parsed.error.flatten());
     }

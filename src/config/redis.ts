@@ -5,7 +5,7 @@ import { createClient, RedisClientType } from 'redis';
 
 let redisClient: RedisClientType;
 
-const isDev = process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'test';
+const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
 const createRedisClient = (): RedisClientType => {
   // ✅ Prefer full REDIS_URL in any environment
