@@ -118,6 +118,8 @@ export const fetchAiAgentById = async (req: AuthRequest, res: Response): Promise
     const agentId = req.params.id;
     const userId = req.user?.userId;
 
+    console.log('fetchAiAgentById', agentId, userId);
+
     if (!agentId) return sendError(res, 400, 'Agent ID is required');
     if (!userId) return sendError(res, 401, 'Unauthorized');
 
@@ -161,7 +163,7 @@ export const fetchAiAgentById = async (req: AuthRequest, res: Response): Promise
       .lean();
 
     const apiKey = aiIntregrationsDetails?.integrationDetails?.apiKey
-    console.log(apiKey)
+    console.log("Api key",apiKey)
     if (!apiKey) {
       return sendError(res, 404, 'API key not found');
     }
