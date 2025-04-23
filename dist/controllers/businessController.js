@@ -13,6 +13,19 @@ const crypto_1 = __importDefault(require("crypto"));
 function generateSecureApiKey(length = 16) {
     return crypto_1.default.randomBytes(length).toString('hex').slice(0, length);
 }
+async function generateUniqueApiKey(length = 16) {
+    let apiKey;
+    let exists = true;
+    let tries = 0;
+    do {
+        apiKey = crypto_1.default.randomBytes(length).toString("hex").slice(0, length);
+        exists = !!await AiIntregrations_1.default.exists({ "integrationDetails.apiKey": apiKey });
+        tries++;
+        if (tries > 10)
+            throw new Error("API key generation failed: too many attempts.");
+    } while (exists);
+    return apiKey;
+}
 const createBusiness = async (req, res, _next) => {
     try {
         const { businessName, businessDomain, industry, businessType, platform, supportSize, supportChannels, websiteTraffic, monthlyConversations, goals, subscriptionPlan = 'free', } = req.body;
@@ -52,8 +65,11 @@ const createBusiness = async (req, res, _next) => {
             expiresAt,
         });
         await business.save();
-        const apiKey = generateSecureApiKey(16);
-        console.log("Generated API Key:", apiKey);
+        const apiKey = await generateUniqueApiKey(16);
+        console.log("Generated API Key:", apiKey, typeof apiKey);
+        if (!apiKey || typeof apiKey !== "string" || apiKey.length < 12) {
+            return (0, response_1.sendError)(res, 500, "API Key generation failed");
+        }
         const aiIntegrations = new AiIntregrations_1.default({
             businessId: business._id,
             website: false,

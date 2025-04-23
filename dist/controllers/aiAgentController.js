@@ -107,6 +107,7 @@ const fetchAiAgentById = async (req, res) => {
     try {
         const agentId = req.params.id;
         const userId = req.user?.userId;
+        console.log('fetchAiAgentById', agentId, userId);
         if (!agentId)
             return (0, response_1.sendError)(res, 400, 'Agent ID is required');
         if (!userId)
@@ -141,7 +142,7 @@ const fetchAiAgentById = async (req, res) => {
             .select('integrationDetails.apiKey')
             .lean();
         const apiKey = aiIntregrationsDetails?.integrationDetails?.apiKey;
-        console.log(apiKey);
+        console.log("Api key", apiKey);
         if (!apiKey) {
             return (0, response_1.sendError)(res, 404, 'API key not found');
         }

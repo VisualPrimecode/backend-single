@@ -10,6 +10,8 @@ import  cookieParser from 'cookie-parser';
 dotenv.config();
 
 export const app = express();
+
+
 // Just after app creation
 if (process.env.NODE_ENV === "production") {
   app.set('trust proxy', true);
@@ -33,7 +35,8 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+
+app.use(cookieParser() as any);
 
 // Connect to MongoDB and Redis
 if (process.env.NODE_ENV !== "test") {

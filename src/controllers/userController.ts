@@ -113,7 +113,7 @@ export const loginUser = async (
     });
   } catch (error) {
     // Optional: Log error here (e.g. winston logger)
-    console.log(error)
+    console.log(error, 'error');
     console.error('Login error:', error);
     return sendError(res, 500, 'Error logging in', error);
   }

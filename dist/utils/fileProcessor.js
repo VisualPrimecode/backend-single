@@ -15,7 +15,7 @@ const parseFileToText = async (filePath) => {
             const buffer = await promises_1.default.readFile(filePath);
             const result = await (0, pdf_parse_1.default)(buffer);
             if (!result.text.trim()) {
-                throw new Error('PDF has no readable text (possibly scanned or corrupted)');
+                throw new Error('PDF has no extractable text');
             }
             return result.text;
         }
@@ -33,6 +33,11 @@ const parseFileToText = async (filePath) => {
         throw new Error(`Unsupported file type: ${ext}`);
     }
     catch (err) {
+        if (ext === '.pdf') {
+            throw new Error(`Could not extract text from ${path_1.default.basename(filePath)} (${ext}). ` +
+                'This often happens with scanned/image-based or password-protected PDFs. ' +
+                'Please use a PDF containing selectable text.');
+        }
         throw new Error(`Could not extract text from ${path_1.default.basename(filePath)} (${ext})`);
     }
 };

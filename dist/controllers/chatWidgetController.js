@@ -7,6 +7,7 @@ exports.loadChatWidget = void 0;
 const response_1 = require("../utils/response");
 const AiIntregrations_1 = __importDefault(require("../models/AiIntregrations"));
 const AiAgent_1 = __importDefault(require("../models/AiAgent"));
+const redis_1 = __importDefault(require("../config/redis"));
 const loadChatWidget = async (req, res) => {
     try {
         const business = req.business;
@@ -52,6 +53,8 @@ const loadChatWidget = async (req, res) => {
         agent.active = true;
         agent?.intregatedDomains.push(domainUrl);
         await agent.save();
+        const cacheKey = `aiAgentsByBusinessId-${business._id}`;
+        await redis_1.default.del(cacheKey);
         return (0, response_1.sendSuccess)(res, 200, 'Chat widget validated', {
             agentName: business.name,
             apiKey: apiKey,

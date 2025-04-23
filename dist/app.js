@@ -7,12 +7,19 @@ exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = __importDefault(require("./config/db"));
-const swagger_1 = require("./swagger");
+// import { swaggerSpec, swaggerUi } from "./swagger";
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv_1.default.config();
 exports.app = (0, express_1.default)();
+// Just after app creation
+if (process.env.NODE_ENV === "production") {
+    exports.app.set('trust proxy', true);
+}
+else {
+    exports.app.set('trust proxy', false);
+}
 exports.app.use((0, cors_1.default)({
     origin: [
         "http://localhost:5173", // for local dev
@@ -46,8 +53,8 @@ exports.app.use("/api/v1/business", businessRoutes_1.default);
 exports.app.use("/api/v1/ai-model", AiModelRoutes_1.default);
 exports.app.use('/api/v1/ai-agent', aiAgent_routes_1.default);
 exports.app.use('/api/v1/widget', chatWidgetRoutes_1.default);
-// Serve Swagger docs at /api-docs
-exports.app.use("/api-docs", swagger_1.swaggerUi.serve, swagger_1.swaggerUi.setup(swagger_1.swaggerSpec));
+// // Serve Swagger docs at /api-docs
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Test Route
 exports.app.get("/", (_req, res) => {
     res.send("SaaS Backend Running");

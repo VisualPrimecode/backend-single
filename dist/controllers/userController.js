@@ -96,7 +96,7 @@ const loginUser = async (req, res, _next) => {
     }
     catch (error) {
         // Optional: Log error here (e.g. winston logger)
-        console.log(error);
+        console.log(error, 'error');
         console.error('Login error:', error);
         return (0, response_1.sendError)(res, 500, 'Error logging in', error);
     }
