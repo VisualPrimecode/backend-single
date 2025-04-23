@@ -1,6 +1,6 @@
 import express from 'express';
 import { createAndTrainAIModel, fetchAiModelsByBusinessId } from '../controllers/AiModelController';
-import { upload } from '../middleware/upload'; // Multer middleware
+import { upload}  from '../middleware/upload'; // Multer middleware
 import authMiddleware from '../middleware/authMiddleware';
 import roleMiddleware from '../middleware/roleMiddleware';
 

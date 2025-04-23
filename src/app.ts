@@ -10,6 +10,7 @@ import  cookieParser from 'cookie-parser';
 dotenv.config();
 
 export const app = express();
+app.set('trust proxy', true);
 
 app.use(
   cors({
