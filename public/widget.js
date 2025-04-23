@@ -16,7 +16,7 @@
     return;
   }
 
-  const backendURL = 'http://localhost:5000';   // https://nuvro-backend.onrender.com 🔁 Replace with your production URL
+  const backendURL = 'https://nuvro-dtao9.ondigitalocean.app';   // https://nuvro-backend.onrender.com 🔁 Replace with your production URL
   const frontendURL = 'https://chatnuvroai.vercel.app';  // https://chatnuvroai.vercel.app 🔁 Replace with your production URL
 
   // ✅ Step 1: Validate API key & domain
