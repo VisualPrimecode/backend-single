@@ -10,7 +10,13 @@ import  cookieParser from 'cookie-parser';
 dotenv.config();
 
 export const app = express();
-app.set('trust proxy', true);
+// Just after app creation
+if (process.env.NODE_ENV === "production") {
+  app.set('trust proxy', true);
+} else {
+  app.set('trust proxy', false);
+}
+
 
 app.use(
   cors({
