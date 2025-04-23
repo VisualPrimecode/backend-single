@@ -15,6 +15,15 @@ function generateSecureApiKey(length = 16): string {
 }
 
 
+async function generateUniqueApiKey(length = 16): Promise<string> {
+  let apiKey;
+  let exists = true;
+  do {
+    apiKey = generateSecureApiKey(length);
+    exists = !!(await AiIntregrations.findOne({ 'integrationDetails.apiKey': apiKey }));
+  } while (exists);
+  return apiKey;
+}
 
 
 export const createBusiness = async (req: AuthRequest, res: Response, _next: NextFunction): Promise<any> => {
@@ -83,8 +92,7 @@ export const createBusiness = async (req: AuthRequest, res: Response, _next: Nex
 
     await business.save();
 
-    const apiKey = generateSecureApiKey(16);
-    console.log("Generated API Key:", apiKey);
+    const apiKey = generateUniqueApiKey(16);
 
     const aiIntegrations = new AiIntregrations({
       businessId: business._id,
