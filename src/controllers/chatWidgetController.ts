@@ -5,6 +5,7 @@ import { chatWidgetRequest } from '../middleware/validateWidgetApi';
 import { sendError, sendSuccess } from '../utils/response';
 import AiIntregrations from '../models/AiIntregrations';
 import Agent from "../models/AiAgent";
+import redisClient from '../config/redis';
 
 export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Promise<any> => {
   try {
@@ -34,7 +35,7 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
       return sendError(res, 403, 'Domain not allowed to connect with this agent');
     }
 
-    const agent: any = await Agent.findOne({ name: agentName, business: business._id});
+    const agent: any = await Agent.findOne({ name: agentName, business: business._id });
 
 
     if (!agent) {
@@ -70,6 +71,9 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
     agent.active = true;
     agent?.intregatedDomains.push(domainUrl);
     await agent.save();
+
+    const cacheKey = `aiAgentsByBusinessId-${business._id}`;
+    await redisClient.del(cacheKey);
 
     return sendSuccess(res, 200, 'Chat widget validated', {
       agentName: business.name,
