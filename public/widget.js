@@ -49,7 +49,6 @@
       document.body.appendChild(iframe);
     })
     .catch((err) => {
-      console.error('[AI Widget] Load failed:', err.message);
-      alert('⚠️ Failed to load AI Assistant. Please check your API key or network.');
+      console.error('[AI Widget] Load failed:', err);
     });
 })();
