@@ -291,4 +291,5 @@ router.delete('/:id', authMiddleware_1.default, (0, roleMiddleware_1.default)(['
 router.get('/', authMiddleware_1.default, (0, roleMiddleware_1.default)(['admin']), businessController_1.fetchAllBusiness);
 // Fetch a single business by ID (Allowed roles: admin, business)
 router.get('/:id', authMiddleware_1.default, (0, roleMiddleware_1.default)(['admin', 'business']), businessController_1.fetchBusinessById);
+router.get('/:id/:agentName/default-responses', businessController_1.fetchDefaultResponse);
 exports.default = router;

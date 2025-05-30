@@ -3,16 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchBusinessById = exports.fetchAllBusiness = exports.deleteBusiness = exports.editBusinessById = exports.createBusiness = void 0;
+exports.fetchDefaultResponse = exports.fetchBusinessById = exports.fetchAllBusiness = exports.deleteBusiness = exports.editBusinessById = exports.createBusiness = void 0;
 const Business_1 = __importDefault(require("../models/Business"));
 const redis_1 = __importDefault(require("../config/redis"));
 const response_1 = require("../utils/response");
 const User_1 = __importDefault(require("../models/User"));
+// import { v4 as uuidv4 } from 'uuid';
 const AiIntregrations_1 = __importDefault(require("..//models/AiIntregrations"));
 const crypto_1 = __importDefault(require("crypto"));
-function generateSecureApiKey(length = 16) {
-    return crypto_1.default.randomBytes(length).toString('hex').slice(0, length);
-}
+const AiAgent_1 = __importDefault(require("../models/AiAgent"));
+// function generateSecureApiKey(length = 16): string {
+//   return crypto.randomBytes(length).toString('hex').slice(0, length);
+// }
 async function generateUniqueApiKey(length = 16) {
     let apiKey;
     let exists = true;
@@ -66,7 +68,6 @@ const createBusiness = async (req, res, _next) => {
         });
         await business.save();
         const apiKey = await generateUniqueApiKey(16);
-        console.log("Generated API Key:", apiKey, typeof apiKey);
         if (!apiKey || typeof apiKey !== "string" || apiKey.length < 12) {
             return (0, response_1.sendError)(res, 500, "API Key generation failed");
         }
@@ -100,6 +101,10 @@ const createBusiness = async (req, res, _next) => {
             }, { new: true });
         }
         await redis_1.default.del(`user:${userId}`);
+        const keys = await redis_1.default.keys('businesses-page-*');
+        if (keys.length > 0) {
+            await redis_1.default.del(keys);
+        }
         return (0, response_1.sendSuccess)(res, 201, 'Business created successfully', business);
     }
     catch (error) {
@@ -118,6 +123,10 @@ const editBusinessById = async (req, res, _next) => {
             return (0, response_1.sendError)(res, 404, 'Business not found');
         }
         // Optionally, you might clear related cache keys here
+        const keys = await redis_1.default.keys('businesses-page-*');
+        if (keys.length > 0) {
+            await redis_1.default.del(keys);
+        }
         return (0, response_1.sendSuccess)(res, 200, 'Business updated successfully', business);
     }
     catch (error) {
@@ -145,17 +154,29 @@ const fetchAllBusiness = async (req, res, _next) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
-        const cacheKey = `businesses-page-${page}`;
+        const search = req.query.search?.trim() || '';
+        const cacheKey = `businesses-page-${page}-search-${search}`;
         // Check if cached data exists
         const cachedData = await redis_1.default.get(cacheKey);
         if (cachedData) {
             return (0, response_1.sendSuccess)(res, 200, 'Fetched businesses from cache', JSON.parse(cachedData));
         }
+        // Search query
+        const query = search ? { $text: { $search: search } } : {};
         // Fetch from database
-        const businesses = await Business_1.default.find().skip((page - 1) * limit).limit(limit);
+        const businesses = await Business_1.default.find(query)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean();
+        const totalCount = await Business_1.default.countDocuments(query);
+        const result = {
+            businesses,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+        };
         // Cache the result for 5 minutes
-        await redis_1.default.set(cacheKey, JSON.stringify(businesses), { EX: 300 });
-        return (0, response_1.sendSuccess)(res, 200, 'Fetched businesses successfully', businesses);
+        await redis_1.default.set(cacheKey, JSON.stringify(result), { EX: 300 });
+        return (0, response_1.sendSuccess)(res, 200, 'Fetched businesses successfully', result);
     }
     catch (error) {
         return (0, response_1.sendError)(res, 500, 'Error fetching businesses', error.message || 'Unknown error');
@@ -177,3 +198,64 @@ const fetchBusinessById = async (req, res, _next) => {
     }
 };
 exports.fetchBusinessById = fetchBusinessById;
+const fetchDefaultResponse = async (req, res, _next) => {
+    try {
+        const { id, agentName } = req.params;
+        // 1. Validate
+        if (!id) {
+            return (0, response_1.sendError)(res, 400, 'Business ID (param "id") is required.');
+        }
+        if (!agentName) {
+            return (0, response_1.sendError)(res, 400, 'Agent name (param "agentName") is required.');
+        }
+        // 2. Load agent
+        const agent = await AiAgent_1.default.findOne({ business: id, name: agentName }).lean();
+        if (!agent) {
+            return (0, response_1.sendError)(res, 404, `Agent "${agentName}" not found for business ${id}.`);
+        }
+        // 3. Build FAQ list from whichever shape you have
+        let defaultFAQResponses = [];
+        const tpl = agent.responseTemplates;
+        if (Array.isArray(tpl)) {
+            // array of strings → split into Q&A
+            defaultFAQResponses = tpl
+                .map((entry) => {
+                // split at first colon
+                const [rawQ, ...rest] = entry.split(':');
+                const question = rawQ.trim();
+                const answer = rest.join(':').trim();
+                return { question, answer };
+            })
+                .filter(item => item.question && item.answer);
+        }
+        else if (tpl && typeof tpl === 'object' && Array.isArray(tpl.faq)) {
+            // object with .faq key
+            defaultFAQResponses = tpl.faq
+                .filter((item) => item &&
+                typeof item.question === 'string' && item.question.trim() !== '' &&
+                typeof item.answer === 'string' && item.answer.trim() !== '')
+                .map((item) => ({
+                question: item.question.trim(),
+                answer: item.answer.trim(),
+            }));
+        }
+        // 4. Fallback
+        const fallbackMessage = agent.fallbackBehavior?.fallbackMessage ||
+            "I'm sorry, I cannot assist with that right now.";
+        // 5. Send back
+        return (0, response_1.sendSuccess)(res, 200, 'Default FAQ responses fetched successfully', {
+            agentName: agent.name,
+            defaultFAQResponses,
+            fallbackMessage,
+        });
+    }
+    catch (error) {
+        console.error('Error in fetchDefaultResponse:', {
+            message: error.message,
+            stack: error.stack,
+            params: req.params,
+        });
+        return (0, response_1.sendError)(res, 500, 'Internal server error while fetching default responses', error.message || 'Unknown error');
+    }
+};
+exports.fetchDefaultResponse = fetchDefaultResponse;

@@ -3,6 +3,8 @@
   const srcUrl = new URL(scriptTag?.src || '');
   const apiKey = srcUrl.searchParams.get('apiKey');
   const agentName = srcUrl.searchParams.get('agentName') || 'AI Assistant';
+
+
   const domainUrl = window.location.hostname;
 
   if (!apiKey) {
@@ -16,22 +18,21 @@
     return;
   }
 
-  const backendURL = 'https://nuvro-dtao9.ondigitalocean.app';   // https://nuvro-backend.onrender.com 🔁 Replace with your production URL
-  const frontendURL = 'https://chatnuvroai.vercel.app';  // https://chatnuvroai.vercel.app 🔁 Replace with your production URL
+  const backendURL = 'http://localhost:5000';   // https://nuvro-dtao9.ondigitalocean.app🔁 Replace with your production URL
+  const frontendURL = 'http://localhost:5173';  // https://chatnuvroai.vercel.app 🔁 Replace with your production URL
 
   // ✅ Step 1: Validate API key & domain
   fetch(
-    `${backendURL}/api/v1/widget/chat-widget?apiKey=${encodeURIComponent(apiKey)}&domainUrl=${encodeURIComponent(domainUrl)}&agentName=${encodeURIComponent(agentName)}`
+    `${backendURL}/api/v1/widget/chat-widget?apiKey=${encodeURIComponent(apiKey)}&domainUrl=${encodeURIComponent(domainUrl)}&agentName=${encodeURIComponent(agentName)}`,
   )
     .then((res) => {
       if (!res.ok) throw new Error('Widget validation failed');
       return res.json();
     })
-    .then(() => {
-      // ✅ Step 2: Create iframe
+    .then((res) => {
       const iframe = document.createElement('iframe');
       iframe.id = 'ai-chat-widget-frame';
-      iframe.src = `${frontendURL}/?apiKey=${encodeURIComponent(apiKey)}&domainUrl=${encodeURIComponent(domainUrl)}&agentName=${encodeURIComponent(agentName)}`;
+      iframe.src = `${frontendURL}/?apiKey=${encodeURIComponent(apiKey)}&domainUrl=${encodeURIComponent(domainUrl)}&agentName=${encodeURIComponent(agentName)}&businessId=${encodeURIComponent(res.data.businessId)}`;
       iframe.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -49,6 +50,7 @@
       document.body.appendChild(iframe);
     })
     .catch((err) => {
+      console.log(err)
       console.error('[AI Widget] Load failed:', err);
     });
 })();

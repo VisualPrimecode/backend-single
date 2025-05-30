@@ -52,13 +52,11 @@ const createAndTrainAIModel = async (req, res) => {
         Object.keys(req.body).forEach(key => {
             cleanedBody[key.trim()] = req.body[key];
         });
-        console.log(req.body);
         const parsed = aiModelSchema.safeParse(cleanedBody);
         if (!parsed.success) {
             return (0, response_1.sendError)(res, 400, 'Invalid request data', parsed.error.flatten());
         }
         const { name, modelType, parameters = defaultParameters, embeddingModel = 'OpenAI', vectorStore = 'Pinecone', chunkingStrategy = defaultChunking, } = parsed.data;
-        console.log(req.user?.userId);
         const user = await User_1.default.findById(req.user?.userId);
         if (!user)
             return (0, response_1.sendError)(res, 404, 'User not found');

@@ -66,4 +66,6 @@ const AgentSchema = new mongoose_1.Schema({
     active: { type: Boolean, default: false },
     languageSupport: { type: [String], default: ['en', 'es', 'bn'] },
 }, { timestamps: true });
+AgentSchema.index({ business: 1 });
+AgentSchema.index({ name: 1, business: 1 }, { unique: true });
 exports.default = mongoose_1.default.model('Agent', AgentSchema);

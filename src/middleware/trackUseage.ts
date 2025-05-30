@@ -9,15 +9,13 @@ export const checkUsageLimits = async (req: Request, res: Response, next: NextFu
         if (!apiKey || typeof apiKey !== 'string') {
             return sendError(res, 401, 'API key missing or invalid');
         }
-
-        const business = await Business.findOne({ 'aiIntegrations.integrationDetails.apiKey': apiKey });
-        if (!business) {
-            return sendError(res, 404, 'Business not found for provided API key');
-        }
          
-        const usageStats: any = await AiIntregrations.findOne({ 'integrationDetails.apiKey': apiKey }).select('integrationDetails').lean();
+        const usageStats: any = await AiIntregrations.findOne({ 'integrationDetails.apiKey': apiKey }).select('integrationDetails businessId').lean();
 
         const integration = usageStats.integrationDetails;
+        const businessId = usageStats.businessId;
+        const business = await Business.findById(businessId).lean();
+
         const now = new Date();
 
 

@@ -339,7 +339,7 @@
 
 import express from 'express';
 import { registerUser, loginUser, logoutUser, fetchAllUsers, fetchUserById, editUser, deleteUser, refreshAccessToken } from '../controllers/userController';
-import authMiddleware from '../middleware/authMiddleware';
+import authMiddleware, { authMiddlewareForAdmin } from '../middleware/authMiddleware';
 import roleMiddleware from '../middleware/roleMiddleware';
 import { globalRateLimiter } from '../middleware/globalRateLimiter';
 
@@ -348,9 +348,9 @@ const router = express.Router();
 router.post('/register', globalRateLimiter as any, registerUser);
 router.post('/login', globalRateLimiter as any, loginUser);
 router.post('/logout', logoutUser);
-router.get('/', authMiddleware, roleMiddleware(['admin']), fetchAllUsers);
+router.get('/', authMiddlewareForAdmin, roleMiddleware(['admin']), fetchAllUsers);
 router.get('/:id', authMiddleware, fetchUserById);
-router.put('/:id', authMiddleware, editUser);
+router.put('/:id', authMiddlewareForAdmin, roleMiddleware(['admin']), editUser);
 router.delete('/:id', authMiddleware, roleMiddleware(['admin']), deleteUser);
 router.post('/refresh-token', refreshAccessToken);
 

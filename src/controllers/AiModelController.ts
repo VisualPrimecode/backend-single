@@ -56,7 +56,6 @@ export const createAndTrainAIModel = async (req: AuthRequest, res: Response): Pr
       cleanedBody[key.trim()] = req.body[key];
     });
      
-    console.log(req.body)
 
     const parsed = aiModelSchema.safeParse(cleanedBody);
     if (!parsed.success) {
@@ -72,7 +71,6 @@ export const createAndTrainAIModel = async (req: AuthRequest, res: Response): Pr
       chunkingStrategy = defaultChunking,
     } = parsed.data;
     
-    console.log(req.user?.userId)
 
     const user =await User.findById(req.user?.userId);
     if (!user) return sendError(res, 404, 'User not found');

@@ -34,6 +34,7 @@ export const validateWidgetApi = async (req: chatWidgetRequest, res: Response, n
     req.business = business;
     req.domainUrl = domainClient;
     req.agentName = agentName;
+
     next();
   } catch (error: any) {
     console.error('Widget API validation error:', error.message);

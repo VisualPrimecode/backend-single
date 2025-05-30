@@ -29,8 +29,6 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
     const normalizedDomain = domainUrl.toLowerCase();
     const isAllowedDomain = existingDomains?.some((d: string) => d.toLowerCase() === normalizedDomain);
 
-    console.log(isAllowedDomain);
-
     if (!isAllowedDomain) {
       return sendError(res, 403, 'Domain not allowed to connect with this agent');
     }
@@ -48,6 +46,7 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
     if (isConnected) {
       return sendSuccess(res, 200, 'Chat widget validated', {
         agentName: agent.name,
+        businessId: business._id,
         apiKey: apiKey,
         domain: domainUrl,
         plan: business.subscriptionPlan,
@@ -76,7 +75,8 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
     await redisClient.del(cacheKey);
 
     return sendSuccess(res, 200, 'Chat widget validated', {
-      agentName: business.name,
+      agentName: agent.name,
+      businessId: business._id,
       apiKey: apiKey,
       domain: domainUrl,
       plan: business.subscriptionPlan,

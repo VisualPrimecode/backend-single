@@ -273,7 +273,7 @@
 
 /* Business Routes */
 import express from 'express';
-import { createBusiness, editBusinessById, deleteBusiness, fetchAllBusiness, fetchBusinessById } from '../controllers/businessController';
+import { createBusiness, editBusinessById, deleteBusiness, fetchAllBusiness, fetchBusinessById, fetchDefaultResponse } from '../controllers/businessController';
 import authMiddleware from '../middleware/authMiddleware';
 import roleMiddleware from '../middleware/roleMiddleware';
 
@@ -293,5 +293,9 @@ router.get('/', authMiddleware, roleMiddleware(['admin']), fetchAllBusiness);
 
 // Fetch a single business by ID (Allowed roles: admin, business)
 router.get('/:id', authMiddleware, roleMiddleware(['admin', 'business']), fetchBusinessById);
+router.get(
+  '/:id/:agentName/default-responses',
+  fetchDefaultResponse
+);
 
 export default router;

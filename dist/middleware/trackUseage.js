@@ -13,12 +13,10 @@ const checkUsageLimits = async (req, res, next) => {
         if (!apiKey || typeof apiKey !== 'string') {
             return (0, response_1.sendError)(res, 401, 'API key missing or invalid');
         }
-        const business = await Business_1.default.findOne({ 'aiIntegrations.integrationDetails.apiKey': apiKey });
-        if (!business) {
-            return (0, response_1.sendError)(res, 404, 'Business not found for provided API key');
-        }
-        const usageStats = await AiIntregrations_1.default.findOne({ 'integrationDetails.apiKey': apiKey }).select('integrationDetails').lean();
+        const usageStats = await AiIntregrations_1.default.findOne({ 'integrationDetails.apiKey': apiKey }).select('integrationDetails businessId').lean();
         const integration = usageStats.integrationDetails;
+        const businessId = usageStats.businessId;
+        const business = await Business_1.default.findById(businessId).lean();
         const now = new Date();
         if (integration) {
             if (integration.expiresAt && now > new Date(integration.expiresAt)) {

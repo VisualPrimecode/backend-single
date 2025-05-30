@@ -11,6 +11,7 @@ const token_1 = require("../utils/token");
 const response_1 = require("../utils/response");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const zod_1 = require("zod");
+const mongoose_1 = __importDefault(require("mongoose"));
 // Define a schema for user registration validation using zod
 const registerSchema = zod_1.z.object({
     email: zod_1.z.string().email(),
@@ -45,6 +46,11 @@ const registerUser = async (req, res, _next) => {
             role: role || 'business', // default to 'business' if not provided,
         });
         await newUser.save();
+        // Invalidate user cache
+        const keys = await redis_1.default.keys('users-page-*');
+        if (keys.length > 0) {
+            await redis_1.default.del(keys);
+        }
         // Fetch clean version without password
         const userWithoutPassword = await User_1.default.findById(newUser._id).select('-password');
         return (0, response_1.sendSuccess)(res, 201, 'User registered successfully', userWithoutPassword);
@@ -76,7 +82,7 @@ const loginUser = async (req, res, _next) => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
         await redis_1.default.del(`user:${user._id}`);
@@ -87,6 +93,7 @@ const loginUser = async (req, res, _next) => {
             refreshToken,
             user: {
                 id: user.id,
+                businessId: user.businessId,
                 name: user.name,
                 email: user.email,
                 role: user.role,
@@ -120,14 +127,37 @@ const fetchAllUsers = async (req, res, _next) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
-        const cacheKey = `users-page-${page}`;
+        const search = req.query.search?.trim() || '';
+        const cacheKey = `users-page-${page}-search-${search}`;
         const cachedData = await redis_1.default.get(cacheKey);
         if (cachedData) {
             return (0, response_1.sendSuccess)(res, 200, 'Fetched users from cache', JSON.parse(cachedData));
         }
-        const users = await User_1.default.find().skip((page - 1) * limit).limit(limit);
-        await redis_1.default.set(cacheKey, JSON.stringify(users), { EX: 300 });
-        return (0, response_1.sendSuccess)(res, 200, 'Fetched users successfully', users);
+        let query = {};
+        if (search) {
+            const isObjectId = mongoose_1.default.Types.ObjectId.isValid(search);
+            query = isObjectId
+                ? {
+                    $or: [
+                        { _id: new mongoose_1.default.Types.ObjectId(search) },
+                        { $text: { $search: search } },
+                    ],
+                }
+                : { $text: { $search: search } };
+        }
+        const users = await User_1.default.find(query)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .select('-password')
+            .lean();
+        const totalCount = await User_1.default.countDocuments(query);
+        const result = {
+            users,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+        };
+        await redis_1.default.set(cacheKey, JSON.stringify(result), { EX: 300 });
+        return (0, response_1.sendSuccess)(res, 200, 'Fetched users successfully', result);
     }
     catch (error) {
         return (0, response_1.sendError)(res, 500, 'Error fetching users', error);
@@ -156,9 +186,15 @@ const editUser = async (req, res, _next) => {
         if (!user) {
             return (0, response_1.sendError)(res, 404, 'User not found');
         }
+        // Invalidate user cache
+        const keys = await redis_1.default.keys('users-page-*');
+        if (keys.length > 0) {
+            await redis_1.default.del(keys);
+        }
         return (0, response_1.sendSuccess)(res, 200, 'User updated successfully', user);
     }
     catch (error) {
+        console.log(error);
         return (0, response_1.sendError)(res, 500, 'Error updating user', error);
     }
 };
@@ -180,6 +216,7 @@ exports.deleteUser = deleteUser;
 const refreshAccessToken = async (req, res, _next) => {
     try {
         const refreshToken = req.cookies.refreshToken || req.body.refreshToken || req.query.refreshToken;
+        console.log('Refresh token:', refreshToken);
         if (!refreshToken) {
             return (0, response_1.sendError)(res, 401, 'Refresh token not provided');
         }

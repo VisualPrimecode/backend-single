@@ -6,6 +6,7 @@ import { generateAccessToken, generateRefreshToken } from '../utils/token';
 import { sendSuccess, sendError } from '../utils/response';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 
 // Define a schema for user registration validation using zod
 const registerSchema = z.object({
@@ -53,6 +54,12 @@ export const registerUser = async (
 
     await newUser.save();
 
+    // Invalidate user cache
+    const keys = await redisClient.keys('users-page-*');
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+    }
+
     // Fetch clean version without password
     const userWithoutPassword = await User.findById(newUser._id).select('-password');
 
@@ -92,7 +99,7 @@ export const loginUser = async (
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -105,6 +112,7 @@ export const loginUser = async (
       refreshToken,
       user: {
         id: user.id,
+        businessId: user.businessId,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -138,21 +146,53 @@ export const fetchAllUsers = async (req: Request, res: Response, _next: NextFunc
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
-    const cacheKey = `users-page-${page}`;
+    const search = (req.query.search as string)?.trim() || '';
+    const cacheKey = `users-page-${page}-search-${search}`;
 
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
       return sendSuccess(res, 200, 'Fetched users from cache', JSON.parse(cachedData));
     }
 
-    const users = await User.find().skip((page - 1) * limit).limit(limit);
-    await redisClient.set(cacheKey, JSON.stringify(users), { EX: 300 });
 
-    return sendSuccess(res, 200, 'Fetched users successfully', users);
+    let query = {};
+
+    if (search) {
+      const isObjectId = mongoose.Types.ObjectId.isValid(search);
+
+      query = isObjectId
+        ? {
+          $or: [
+            { _id: new mongoose.Types.ObjectId(search) },
+            { $text: { $search: search } },
+          ],
+        }
+        : { $text: { $search: search } };
+    }
+
+
+    const users = await User.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .select('-password')
+      .lean();
+
+    const totalCount = await User.countDocuments(query);
+
+    const result = {
+      users,
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+    };
+
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 300 });
+
+    return sendSuccess(res, 200, 'Fetched users successfully', result);
   } catch (error) {
     return sendError(res, 500, 'Error fetching users', error);
   }
 };
+
 
 export const fetchUserById = async (req: Request, res: Response, _next: NextFunction): Promise<any> => {
   try {
@@ -175,8 +215,16 @@ export const editUser = async (req: Request, res: Response, _next: NextFunction)
     if (!user) {
       return sendError(res, 404, 'User not found');
     }
+
+    // Invalidate user cache
+    const keys = await redisClient.keys('users-page-*');
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+    }
+
     return sendSuccess(res, 200, 'User updated successfully', user);
   } catch (error) {
+    console.log(error)
     return sendError(res, 500, 'Error updating user', error);
   }
 };
@@ -203,6 +251,8 @@ export const refreshAccessToken = async (
   try {
     const refreshToken =
       req.cookies.refreshToken || req.body.refreshToken || req.query.refreshToken;
+
+    console.log('Refresh token:', refreshToken);
 
     if (!refreshToken) {
       return sendError(res, 401, 'Refresh token not provided');

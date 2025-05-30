@@ -24,6 +24,9 @@ export interface IUser extends Document {
     },
     { timestamps: true }
   );
+
+  UserSchema.index({ name: 'text', email: 'text' });
+
   
   export default mongoose.model<IUser>('User', UserSchema);
   

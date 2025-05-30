@@ -37,4 +37,10 @@ const BusinessSchema = new Schema<IBusiness>(
   { timestamps: true }
 );
 
+BusinessSchema.index({
+  name: 'text',
+  domainName: 'text',
+});
+
+
 export default mongoose.model<IBusiness>('Business', BusinessSchema);

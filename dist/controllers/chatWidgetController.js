@@ -34,6 +34,7 @@ const loadChatWidget = async (req, res) => {
         if (isConnected) {
             return (0, response_1.sendSuccess)(res, 200, 'Chat widget validated', {
                 agentName: agent.name,
+                businessId: business._id,
                 apiKey: apiKey,
                 domain: domainUrl,
                 plan: business.subscriptionPlan,
@@ -53,10 +54,11 @@ const loadChatWidget = async (req, res) => {
         agent.active = true;
         agent?.intregatedDomains.push(domainUrl);
         await agent.save();
-        const cacheKey = `aiAgentsByBusinessId-${business._id}`;
+        const cacheKey = `agentById-${agent._id}`;
         await redis_1.default.del(cacheKey);
         return (0, response_1.sendSuccess)(res, 200, 'Chat widget validated', {
-            agentName: business.name,
+            agentName: agent.name,
+            businessId: business._id,
             apiKey: apiKey,
             domain: domainUrl,
             plan: business.subscriptionPlan,

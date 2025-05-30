@@ -48,4 +48,8 @@ const BusinessSchema = new mongoose_1.Schema({
     goals: { type: [String], required: true },
     subscriptionPlan: { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
 }, { timestamps: true });
+BusinessSchema.index({
+    name: 'text',
+    domainName: 'text',
+});
 exports.default = mongoose_1.default.model('Business', BusinessSchema);

@@ -67,4 +67,7 @@ const AgentSchema = new Schema<IAgent>(
   { timestamps: true }
 );
 
+AgentSchema.index({ business: 1 });
+AgentSchema.index({ name: 1, business: 1 }, { unique: true });
+
 export default mongoose.model<IAgent>('Agent', AgentSchema);

@@ -43,4 +43,5 @@ const UserSchema = new mongoose_1.Schema({
     onboardingCompleted: { type: Boolean, default: false },
     verified: { type: Boolean, default: false },
 }, { timestamps: true });
+UserSchema.index({ name: 'text', email: 'text' });
 exports.default = mongoose_1.default.model('User', UserSchema);
