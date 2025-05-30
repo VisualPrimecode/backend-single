@@ -23,6 +23,7 @@ const loadChatWidget = async (req, res) => {
         const { limits, usageStats, existingDomains, integrationTypes, apiKey } = aiIntregation?.integrationDetails;
         const normalizedDomain = domainUrl.toLowerCase();
         const isAllowedDomain = existingDomains?.some((d) => d.toLowerCase() === normalizedDomain);
+        console.log(domainUrl, existingDomains, isAllowedDomain);
         if (!isAllowedDomain) {
             return (0, response_1.sendError)(res, 403, 'Domain not allowed to connect with this agent');
         }
@@ -67,6 +68,7 @@ const loadChatWidget = async (req, res) => {
         });
     }
     catch (error) {
+        console.log(error);
         console.error('Error loading chat widget:', error);
         return res.status(500).json({ message: 'Internal Server Error' });
     }

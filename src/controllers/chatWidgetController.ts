@@ -28,10 +28,13 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
 
     const normalizedDomain = domainUrl.toLowerCase();
     const isAllowedDomain = existingDomains?.some((d: string) => d.toLowerCase() === normalizedDomain);
+   
+    console.log(domainUrl, existingDomains, isAllowedDomain);
 
     if (!isAllowedDomain) {
       return sendError(res, 403, 'Domain not allowed to connect with this agent');
     }
+    
 
     const agent: any = await Agent.findOne({ name: agentName, business: business._id });
 
@@ -84,6 +87,7 @@ export const loadChatWidget = async (req: chatWidgetRequest, res: Response): Pro
       connected: true,
     },);
   } catch (error: any) {
+    console.log(error)
     console.error('Error loading chat widget:', error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }

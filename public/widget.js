@@ -17,7 +17,8 @@
     console.warn('[AI Widget] Chat widget already initialized');
     return;
   }
-
+   
+  //http://localhost:5000 
   const backendURL = 'https://nuvro-dtao9.ondigitalocean.app';   // https://nuvro-dtao9.ondigitalocean.app🔁 Replace with your production URL
   const frontendURL = 'https://chatnuvroai.vercel.app';  // https://chatnuvroai.vercel.app 🔁 Replace with your production URL
 
