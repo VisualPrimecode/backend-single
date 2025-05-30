@@ -32,7 +32,7 @@ app.use(
       "http://localhost:5174",
       "http://localhost:5175",
 
-
+      "https://chatnuvroai.vercel.app",
       "https://nuvro-user.vercel.app"
     ],
     methods: "GET,POST,PUT,DELETE,PATCH",
