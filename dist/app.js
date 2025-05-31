@@ -18,6 +18,7 @@ const aiAgent_routes_1 = __importDefault(require("./routes/aiAgent.routes"));
 const chatWidgetRoutes_1 = __importDefault(require("./routes/chatWidgetRoutes"));
 const messageRoutes_1 = __importDefault(require("./routes/messageRoutes"));
 const chatInboxRoutes_1 = __importDefault(require("./routes/chatInboxRoutes"));
+const ticketRoutes_1 = __importDefault(require("./routes/ticketRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 dotenv_1.default.config();
 exports.app = (0, express_1.default)();
@@ -29,6 +30,7 @@ exports.app.use((0, cors_1.default)({
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
+        "https://chatnuvroai.vercel.app",
         "https://nuvro-user.vercel.app"
     ],
     methods: "GET,POST,PUT,DELETE,PATCH",
@@ -55,6 +57,7 @@ exports.app.use("/api/v1/ai-agent", aiAgent_routes_1.default);
 exports.app.use("/api/v1/widget", chatWidgetRoutes_1.default);
 exports.app.use("/api/v1/messages", messageRoutes_1.default);
 exports.app.use("/api/v1/customer", chatInboxRoutes_1.default);
+exports.app.use("/api/v1/tickets", ticketRoutes_1.default);
 exports.app.use("/api/v1/admin", adminRoutes_1.default);
 // Root
 exports.app.get("/", (_req, res) => {

@@ -78,13 +78,14 @@ const loginUser = async (req, res, _next) => {
         // Generate tokens
         const accessToken = (0, token_1.generateAccessToken)(user._id, user.role);
         const refreshToken = (0, token_1.generateRefreshToken)(user._id);
-        // Set refresh token in HTTP-only cookie (for web)
-        res.cookie('refreshToken', refreshToken, {
+        const isProd = process.env.NODE_ENV === 'production';
+        const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+            secure: isProd,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        };
+        res.cookie('refreshToken', refreshToken, cookieOptions);
         await redis_1.default.del(`user:${user._id}`);
         // Send response
         return (0, response_1.sendSuccess)(res, 200, 'User logged in successfully', {
@@ -216,7 +217,7 @@ exports.deleteUser = deleteUser;
 const refreshAccessToken = async (req, res, _next) => {
     try {
         const refreshToken = req.cookies.refreshToken || req.body.refreshToken || req.query.refreshToken;
-        console.log('Refresh token:', refreshToken);
+        console.log('Refresh Token From:', refreshToken);
         if (!refreshToken) {
             return (0, response_1.sendError)(res, 401, 'Refresh token not provided');
         }

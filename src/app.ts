@@ -14,6 +14,7 @@ import aiAgentRoutes from "./routes/aiAgent.routes";
 import chatWidgetRoutes from "./routes/chatWidgetRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import chatInboxRoutes from "./routes/chatInboxRoutes";
+import ticketRoutes from "./routes/ticketRoutes";
 
 import adminRoutes from "./routes/adminRoutes";
 
@@ -64,6 +65,7 @@ app.use("/api/v1/ai-agent", aiAgentRoutes);
 app.use("/api/v1/widget", chatWidgetRoutes);
 app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/customer", chatInboxRoutes);
+app.use("/api/v1/tickets", ticketRoutes);
 
 app.use("/api/v1/admin", adminRoutes);
 

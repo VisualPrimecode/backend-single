@@ -95,13 +95,20 @@ export const loginUser = async (
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
 
-    // Set refresh token in HTTP-only cookie (for web)
-    res.cookie('refreshToken', refreshToken, {
+
+    const isProd = process.env.NODE_ENV === 'production';
+
+    const cookieOptions: import('express').CookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+      secure: isProd,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    };
+
+
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
+
 
     await redisClient.del(`user:${user._id}`);
 
@@ -251,9 +258,8 @@ export const refreshAccessToken = async (
   try {
     const refreshToken =
       req.cookies.refreshToken || req.body.refreshToken || req.query.refreshToken;
-
-    console.log('Refresh token:', refreshToken);
-
+     
+     console.log('Refresh Token From:', refreshToken); 
     if (!refreshToken) {
       return sendError(res, 401, 'Refresh token not provided');
     }
@@ -272,7 +278,7 @@ export const refreshAccessToken = async (
 
     // ✅ Try to get cached user
     let cachedUser = await redisClient.get(`user:${userId}`);
-    let user;
+    let user: any;
 
     if (cachedUser) {
       user = JSON.parse(cachedUser);
