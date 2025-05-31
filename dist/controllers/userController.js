@@ -82,8 +82,8 @@ const loginUser = async (req, res, _next) => {
         const cookieOptions = {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            secure: isProd,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            secure: true,
+            sameSite: 'none',
         };
         res.cookie('refreshToken', refreshToken, cookieOptions);
         await redis_1.default.del(`user:${user._id}`);
