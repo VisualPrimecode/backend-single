@@ -31,7 +31,8 @@ exports.app.use((0, cors_1.default)({
         "http://localhost:5174",
         "http://localhost:5175",
         "https://chatnuvroai.vercel.app",
-        "https://nuvro-user.vercel.app"
+        "https://nuvro-user.vercel.app",
+        "https://admin-pink-nu.vercel.app"
     ],
     methods: "GET,POST,PUT,DELETE,PATCH",
     credentials: true,

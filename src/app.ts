@@ -34,7 +34,8 @@ app.use(
       "http://localhost:5175",
 
       "https://chatnuvroai.vercel.app",
-      "https://nuvro-user.vercel.app"
+      "https://nuvro-user.vercel.app",
+      "https://admin-pink-nu.vercel.app"
     ],
     methods: "GET,POST,PUT,DELETE,PATCH",
     credentials: true,
