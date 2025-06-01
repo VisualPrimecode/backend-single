@@ -78,7 +78,6 @@ const loginUser = async (req, res, _next) => {
         // Generate tokens
         const accessToken = (0, token_1.generateAccessToken)(user._id, user.role);
         const refreshToken = (0, token_1.generateRefreshToken)(user._id);
-        const isProd = process.env.NODE_ENV === 'production';
         const cookieOptions = {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -115,7 +114,7 @@ const logoutUser = async (_req, res, _next) => {
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'none',
         });
         return (0, response_1.sendSuccess)(res, 200, 'User logged out successfully');
     }

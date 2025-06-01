@@ -95,9 +95,6 @@ export const loginUser = async (
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
 
-
-    const isProd = process.env.NODE_ENV === 'production';
-
     const cookieOptions: import('express').CookieOptions = {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -140,7 +137,7 @@ export const logoutUser = async (_req: Request, res: Response, _next: NextFuncti
       {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
       }
     );
     return sendSuccess(res, 200, 'User logged out successfully');
