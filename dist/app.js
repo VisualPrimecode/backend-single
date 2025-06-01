@@ -22,6 +22,7 @@ const ticketRoutes_1 = __importDefault(require("./routes/ticketRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 dotenv_1.default.config();
 exports.app = (0, express_1.default)();
+exports.app.set('trust proxy', 1);
 // Middleware
 exports.app.use((0, cors_1.default)({
     origin: [

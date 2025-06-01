@@ -72,10 +72,14 @@ async function uploadPdfToCloudinary(localFilePath, fileName, operationId) {
         throw new Error(errorMsg);
     }
     try {
+        const publicIdForUpload = fileName.replace(/\.pdf$/i, ''); // Keep this as is
         logger.info({ operationId, localFilePath, fileName }, "Attempting to upload PDF to Cloudinary.");
         const result = await cloudinary_1.v2.uploader.upload(localFilePath, {
-            folder: 'ai-generated-quotes', public_id: fileName.replace(/\.pdf$/i, ''),
-            resource_type: 'raw', overwrite: true,
+            folder: 'ai-generated-quotes',
+            public_id: publicIdForUpload, // public_id without extension
+            resource_type: 'raw',
+            format: 'pdf', // <--- ADD THIS LINE: Explicitly tell Cloudinary the format
+            overwrite: true,
         });
         logger.info({ operationId, secure_url: result.secure_url }, "PDF successfully uploaded to Cloudinary.");
         try {

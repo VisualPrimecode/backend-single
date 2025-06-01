@@ -107,11 +107,16 @@ async function uploadPdfToCloudinary(localFilePath: string, fileName: string, op
     logger.error({ operationId, localFilePath }, errorMsg); throw new Error(errorMsg);
   }
   try {
+    const publicIdForUpload = fileName.replace(/\.pdf$/i, ''); // Keep this as is
     logger.info({ operationId, localFilePath, fileName }, "Attempting to upload PDF to Cloudinary.");
-    const result = await cloudinary.uploader.upload(localFilePath, {
-      folder: 'ai-generated-quotes', public_id: fileName.replace(/\.pdf$/i, ''),
-      resource_type: 'raw', overwrite: true,
+     const result = await cloudinary.uploader.upload(localFilePath, {
+      folder: 'ai-generated-quotes',
+      public_id: publicIdForUpload, // public_id without extension
+      resource_type: 'raw',
+      format: 'pdf', // <--- ADD THIS LINE: Explicitly tell Cloudinary the format
+      overwrite: true,
     });
+
     logger.info({ operationId, secure_url: result.secure_url }, "PDF successfully uploaded to Cloudinary.");
     try { fs.unlinkSync(localFilePath); logger.info({ operationId, localFilePath }, "Local PDF file deleted."); }
     catch (unlinkError: any) { logger.warn({ operationId, localFilePath, error: unlinkError.message }, "Failed to delete local PDF."); }
