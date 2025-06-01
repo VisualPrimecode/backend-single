@@ -22,8 +22,7 @@ dotenv.config();
 
 export const app = express();
 
-// Trust proxy
-app.set("trust proxy", process.env.NODE_ENV === "production");
+
 
 // Middleware
 app.use(
